@@ -67,7 +67,6 @@ class TodoController extends Controller
                 return $this->redirect(['view', 'id' => $result->id]);
             } else {
                 $errors = $result;
-
             }
         }
         return $this->render('create', ['model'=>new Todo(),'errors'=>$errors]);
