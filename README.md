@@ -39,18 +39,20 @@ ports:
 
 Теперь приложение будет доступно на `http://localhost:8082`
 
-4. **Установите зависимости**
+4. **Запустите контейнеры**
+
+```bash
+docker compose up -d --build
+```
+
+
+5. **Установите зависимости**
 
 ```bash
 docker compose exec app composer install
 docker compose exec app composer update
 ```
 
-5. **Запустите контейнеры**
-
-```bash
-docker compose up -d --build
-```
 
 6. **Выполните миграции**
 
