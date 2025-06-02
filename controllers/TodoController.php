@@ -2,14 +2,21 @@
 namespace app\controllers;
 
 use app\models\Todo;
+use app\services\TodoService;
 use Yii;
 use yii\filters\AccessControl;
 use yii\web\Controller;
-use yii\web\ForbiddenHttpException;
-use yii\web\NotFoundHttpException;
 
 class TodoController extends Controller
 {
+    private $todoService;
+
+    public function __construct($id, $module, TodoService $todoService, $config = [])
+    {
+        $this->todoService = $todoService;
+        parent::__construct($id, $module, $config);
+    }
+
     public function behaviors()
     {
         return [
@@ -28,53 +35,73 @@ class TodoController extends Controller
     public function actionIndex()
     {
         $userId = Yii::$app->session->get('user_id');
+        $username = Yii::$app->session->get('username');
 
-        if (!$userId){
+        if (!$userId) {
             return $this->redirect('/site/login');
         }
 
-        $todos = Todo::find()->where(['user_id'=>Yii::$app->session->get("user_id")])->all();
-        return $this->render('index', ['todos' => $todos]);
+        $todos = $this->todoService->getTodosByUserId($userId);
+
+        return $this->render('index', ['todos' => $todos, 'username'=>$username]);
     }
+
     public function actionView($id)
     {
-        return $this->render('view', ['model'=>$this->findModel($id)]);
+        $userId = Yii::$app->session->get('user_id');
+        $todo = $this->todoService->getTodoById($id, $userId);
+
+        return $this->render('view', ['model'=>$todo]);
     }
+
     public function actionCreate()
     {
-        $model = new Todo();
-        $model->user_id = Yii::$app->session->get("user_id");
+        $userId = Yii::$app->session->get('user_id');
+        $errors = null;
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id'=>$model->id]);
+        if (Yii::$app->request->isPost) {
+            $data = Yii::$app->request->post();
+            $result = $this->todoService->createTodo($data, $userId);
+
+            if ($result instanceof Todo) {
+                return $this->redirect(['view', 'id' => $result->id]);
+            } else {
+                $errors = $result;
+
+            }
         }
-        return $this->render('create', ['model'=>$model]);
+        return $this->render('create', ['model'=>new Todo(),'errors'=>$errors]);
     }
+
     public function actionUpdate($id)
     {
-        $model = $this->findModel($id);
-        if ($model->user_id !== Yii::$app->session->get("user_id")) {
-            throw new ForbiddenHttpException("Access denied");
-        }
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
+        $userId = Yii::$app->session->get('user_id');
+        $errors = null;
 
-            return $this->redirect(['view', 'id'=>$model->id]);
+        if (Yii::$app->request->isPost) {
+            $data = Yii::$app->request->post();
+            $result = $this->todoService->updateTodo($id, $data, $userId);
+
+            if ($result instanceof Todo) {
+                return $this->redirect(['view', 'id' => $result->id]);
+            } else {
+                $errors = $result;
+            }
         }
-        return $this->render('update', ['model'=>$model]);
+        $todo = $this->todoService->getTodoById($id, $userId);
+
+        return $this->render('update', [
+            'model'=>$todo,
+            'errors'=>$errors,
+        ]);
     }
+
     public function actionDelete($id)
     {
-        $model = $this->findModel($id);
-        if ($model->user_id === Yii::$app->session->get("user_id")) {
-            $model->delete();
-        }
+        $userId = Yii::$app->session->get('user_id');
+        $this->todoService->deleteTodo($id, $userId);
+
         return $this->redirect(['index']);
     }
-    protected function findModel($id)
-    {
-        if(($model = Todo::findOne($id)) !== null) {
-            return $model;
-        }
-        throw new NotFoundHttpException('The requested todo does not exist.');
-    }
+
 }

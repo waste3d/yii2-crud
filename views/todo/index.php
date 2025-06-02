@@ -4,11 +4,10 @@
 
 use yii\helpers\Html;
 
-$this->username = Yii::$app->session->get('username');
 
 $this->title = 'Список задач';
 ?>
-<h1>Hello, <?= Html::encode($this->username) ?></h1>
+<h1>Hello, <?= Html::encode($username) ?></h1>
 
 <p>
     <?= \yii\helpers\Html::beginForm(['/site/logout'], 'post') ?>
