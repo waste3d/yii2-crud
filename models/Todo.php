@@ -9,6 +9,7 @@ class Todo extends ActiveRecord
     {
         return 'todos';
     }
+
     public function rules()
     {
         return [

@@ -9,10 +9,12 @@ class User extends ActiveRecord
     {
         return '{{%users}}';
     }
+
     public static function findByUsername($username)
     {
         return static::findOne(['username' => $username]);
     }
+
     public function validatePassword($password)
     {
         return password_verify($password, $this->password_hash);

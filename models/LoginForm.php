@@ -18,6 +18,7 @@ class LoginForm extends Model
             ['password', 'validatePassword'],
         ];
     }
+
     public function validatePassword($attribute)
     {
         if (!$this->hasErrors()) {
@@ -46,6 +47,7 @@ class LoginForm extends Model
         }
         return $this->_user;
     }
+
     public function login()
     {
         if ($this->validate()) {
