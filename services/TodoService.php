@@ -2,18 +2,26 @@
 namespace app\services;
 
 use app\models\Todo;
+use app\repositories\TodoRepository;
 use yii\web\NotFoundHttpException;
 
 class TodoService
 {
+    private $todoRepository;
+
+    public function __construct()
+    {
+        $this->todoRepository = new TodoRepository();
+    }
+
     public function getTodosByUserId($user_id)
     {
-        return Todo::find()->where(["user_id"=>$user_id])->all();
+        return $this->todoRepository->getByUserId($user_id);
     }
 
     public function getTodoById($id, $user_id)
     {
-        $todo = Todo::findOne($id);
+        $todo = $this->todoRepository->getById($id);
         if (!$todo) {
             throw new NotFoundHttpException('The requested page does not exist.');
         }
@@ -31,11 +39,8 @@ class TodoService
         $todo -> user_id = $user_id;
         $todo->load($data);
 
-        if (!$todo->save()) {
-            return $todo->errors;
-        }
 
-        return $todo;
+        return $this->todoRepository->save($todo);
     }
 
     public function updateTodo($id, array $data, $user_id)
@@ -43,15 +48,13 @@ class TodoService
         $todo = $this->getTodoById($id, $user_id);
         $todo->load($data);
 
-        if (!$todo->save()) {
-            return $todo->errors;
-        }
-        return $todo;
+        return $this->todoRepository->save($todo);
     }
 
     public function deleteTodo($id, $user_id)
     {
         $todo = $this->getTodoById($id, $user_id);
-        return $todo->delete();
+        $this->todoRepository->delete($todo);
+
     }
 }
